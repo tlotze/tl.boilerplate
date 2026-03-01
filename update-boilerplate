@@ -1,0 +1,80 @@
+#!/bin/sh
+
+set -e
+# set -x
+
+# Setup config files, read config variables.
+
+WORKINGDIR=$(pwd)
+CONFIGNAME=".boilerplate"
+CONFIGDIR="${WORKINGDIR}/${CONFIGNAME}"
+CONFIG="${CONFIGDIR}/config.sh"
+CREATE="${CONFIGDIR}/create.sh"
+
+BPBRANCH="boilerplate"
+BPMESSAGE="update boilerplate"
+if [ -f "${CONFIG}" ]; then
+    . "${CONFIG}"
+fi
+
+# Implement undo, which resets the boilerplate branch to its parent.
+
+if [ "X$1" = "X-u" ]; then
+    git branch -f "${BPBRANCH}" "${BPBRANCH}^"
+
+    exit
+fi
+
+# Implement init, which creates a git repo with an empty root commit.
+
+if [ "X$1" = "X-i" ]; then
+    git init
+
+    if [ -n "$2" ]; then
+        git persona -n "$2"
+    fi
+
+    git commit --allow-empty -m "init: empty root commit"
+
+    mkdir -p "${CONFIGDIR}"
+    touch "${CONFIG}"
+    touch "${CREATE}"
+
+    exit
+fi
+
+# Implement boilerplate update. Join all arguments into the commit message.
+
+if [ -n "$*" ]; then
+    BPMESSAGE="$*"
+fi
+
+if [ -z $(git branch --list "${BPBRANCH}") ]; then
+    git branch "${BPBRANCH}"
+fi
+
+PROJECTBASE=$(mktemp -d)
+WORKTREE="${PROJECTBASE}/bp"
+
+git worktree add "${WORKTREE}" "${BPBRANCH}"
+echo "Working inside ${PROJECTBASE}"
+
+mv "${WORKTREE}/.git" "${PROJECTBASE}"
+rm -rf "${WORKTREE}"
+mkdir "${WORKTREE}"
+
+cd "${WORKTREE}"
+
+sh "${CREATE}"
+
+rm -rf "${WORKTREE}/.git"
+mv "${PROJECTBASE}/.git" "${WORKTREE}/"
+
+git add .
+git commit -m "${BPMESSAGE}"
+
+cd "${WORKINGDIR}"
+
+git worktree remove "${WORKTREE}"
+rmdir "${PROJECTBASE}"
+echo "Removed ${PROJECTBASE}"
