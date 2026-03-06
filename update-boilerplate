@@ -37,8 +37,11 @@ if [ "X$1" = "X-i" ]; then
     git commit --allow-empty -m "init: empty root commit"
 
     mkdir -p "${CONFIGDIR}"
-    touch "${CONFIG}"
     touch "${CREATE}"
+    cat > "${CONFIG}" <<EOF
+BPBRANCH="${BPBRANCH}"
+BPMESSAGE="${BPMESSAGE}"
+EOF
 
     exit
 fi
