@@ -68,6 +68,8 @@ mkdir "${WORKTREE}"
 
 cd "${WORKTREE}"
 
+export CONFIGDIR
+cp -a "${CONFIGDIR}" .
 sh "${CREATE}"
 
 rm -rf "${WORKTREE}/.git"

@@ -41,3 +41,15 @@ the boilerplate generation) as well as any configuration for tools and templates
 ``boilerplate`` branch and changes to it are meant to be committed just before or after merging the updated
 boilerplate branch. Thus the developer can work on the configuration and test it without having to touch the
 temporary workspace and the ``.boilerplate`` directory will not interfere with the generated content.
+
+Example config
+==============
+
+A ``create.sh`` that instantiates a copier template for a python project, moves the answers file to where it
+can be version controlled without conflict, and has ``uv`` add its lock file:
+
+.. code:: sh
+
+    copier copy -a .boilerplate/copier-answers.yml gh:tlotze/copier-template-tl-python-package .
+    mv .copier-answers.yml .boilerplate/copier-answers.yml
+    uv lock
