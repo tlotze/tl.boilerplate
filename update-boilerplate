@@ -13,6 +13,7 @@ CREATE="${CONFIGDIR}/create.sh"
 
 BPBRANCH="boilerplate"
 BPMESSAGE="update boilerplate"
+BPPRECOMMIT="prek"
 if [ -f "${CONFIG}" ]; then
     . "${CONFIG}"
 fi
@@ -41,6 +42,11 @@ if [ "X$1" = "X-i" ]; then
     cat > "${CONFIG}" <<EOF
 BPBRANCH="${BPBRANCH}"
 BPMESSAGE="${BPMESSAGE}"
+
+# prek, pre-commit or the empty string
+# Skipping the hook on the boilerplate branch may be useful if the template
+# hook requires the package to be installed, e.g. in order to run tests.
+BPPRECOMMIT="${BPPRECOMMIT}"
 EOF
 
     exit
@@ -76,6 +82,10 @@ rm -rf "${CLONE}/.git"
 mv "${PROJECTBASE}/.git" "${CLONE}/"
 
 git add .
+
+if [ -n "$BPPRECOMMIT" -a -n "$(which ${BPPRECOMMIT})" ]; then
+    "$BPPRECOMMIT" install --allow-missing-config
+fi
 
 if [ -n "${GITEMAIL}" ]; then git config --local user.email "${GITEMAIL}"; fi
 if [ -n "${GITNAME}" ]; then git config --local user.name "${GITNAME}"; fi
