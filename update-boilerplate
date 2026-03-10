@@ -52,34 +52,41 @@ if [ -n "$*" ]; then
     BPMESSAGE="$*"
 fi
 
+GITEMAIL="$(git config --local user.email)"
+GITNAME="$(git config --local user.name)"
+
 if [ -z $(git branch --list "${BPBRANCH}") ]; then
     git branch "${BPBRANCH}"
 fi
 
 PROJECTBASE=$(mktemp -d)
-WORKTREE="${PROJECTBASE}/bp"
-
-git worktree add "${WORKTREE}" "${BPBRANCH}"
+git clone --shared --no-checkout --branch "${BPBRANCH}" . "${PROJECTBASE}"
 echo "Working inside ${PROJECTBASE}"
 
-mv "${WORKTREE}/.git" "${PROJECTBASE}"
-rm -rf "${WORKTREE}"
-mkdir "${WORKTREE}"
-
-cd "${WORKTREE}"
+CLONE="${PROJECTBASE}/bp"
+mkdir "${CLONE}"
+cd "${CLONE}"
 
 export CONFIGDIR
 cp -a "${CONFIGDIR}" .
+
 sh "${CREATE}"
 
-rm -rf "${WORKTREE}/.git"
-mv "${PROJECTBASE}/.git" "${WORKTREE}/"
+rm -rf "${CLONE}/.git"
+mv "${PROJECTBASE}/.git" "${CLONE}/"
 
 git add .
+
+if [ -n "${GITEMAIL}" ]; then git config --local user.email "${GITEMAIL}"; fi
+if [ -n "${GITNAME}" ]; then git config --local user.name "${GITNAME}"; fi
+
 git commit -m "${BPMESSAGE}"
+git push
+
+rm -rf .git
 
 cd "${WORKINGDIR}"
 
-git worktree remove "${WORKTREE}"
+rm -r "${CLONE}"
 rmdir "${PROJECTBASE}"
 echo "Removed ${PROJECTBASE}"
