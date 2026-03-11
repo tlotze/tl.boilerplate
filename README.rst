@@ -50,6 +50,10 @@ can be version controlled without conflict, and has ``uv`` add its lock file:
 
 .. code:: sh
 
-    copier copy -a .boilerplate/copier-answers.yml gh:tlotze/copier-template-tl-python-package .
+    copier copy --data-file .boilerplate/copier-answers.yml gh:tlotze/copier-template-tl-python-package .
     mv .copier-answers.yml .boilerplate/copier-answers.yml
     uv lock
+
+Re-reading the answers file as data file makes the process skip any questions answered previously. This fits a
+model of editing previous answers like other project files and only having copier help any new questions added
+to the template since its last instantiation.
